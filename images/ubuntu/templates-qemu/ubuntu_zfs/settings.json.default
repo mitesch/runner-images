@@ -1,0 +1,39 @@
+{
+  "vm": {
+    "name": "ubuntu-zfs",
+    "disk_size_gb": 90,
+    "memory_mb": 14096,
+    "cpus": 12,
+    "firmware": "uefi",
+    "disk_path": "../ubuntu-zfs.qcow2"
+  },
+  "network": {
+    "hostname": "ubuntu-zfs",
+    "use_dhcp": true,
+    "static_ip": null,
+    "gateway": null,
+    "dns": ["1.1.1.1", "8.8.8.8"]
+  },
+  "user": {
+    "username": "admin",
+    "password_hash": "",
+    "ssh_public_key": "",
+    "groups": ["sudo", "adm"]
+  },
+  "zfs": {
+    "enabled": true,
+    "install_latest": true,
+    "compression": "zstd"
+  },
+  "ssh": {
+    "port": 22,
+    "permit_root_login": false,
+    "password_authentication": true,
+    "pubkey_authentication": true
+  },
+  "packages": [
+    "openssh-server"
+  ],
+  "locale": "en_US.UTF-8",
+  "timezone": "UTC"
+}

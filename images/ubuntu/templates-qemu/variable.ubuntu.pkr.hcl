@@ -170,7 +170,7 @@ variable "install_user" {
 variable "qemu_base_image_path" {
   type        = string
   description = "Path to the base qcow2 image"
-  default     = "/home/mike/vms/ubuntu-zfs.qcow2"
+  default     = "ubuntu-zfs.qcow2"
 }
 variable "qemu_output_directory" {
   type        = string
@@ -185,17 +185,17 @@ variable "qemu_vm_name" {
 variable "qemu_cpus" {
   type        = number
   description = "Number of CPUs for the build VM"
-  default     = 4
+  default     = 14
 }
 variable "qemu_memory" {
   type        = number
   description = "Memory in MB for the build VM"
-  default     = 4096
+  default     = 14096
 }
 variable "qemu_disk_size_gb" {
   type        = number
   description = "Disk size in GB"
-  default     = 75
+  default     = 90
 }
 variable "qemu_efi_firmware_code" {
   type        = string
@@ -205,7 +205,7 @@ variable "qemu_efi_firmware_code" {
 variable "qemu_efi_firmware_vars" {
   type        = string
   description = "Path to OVMF firmware vars (must be writable, will be copied)"
-  default     = "/home/mike/_git/ubuntu_zfs/ubuntu-zfs_OVMF_VARS.fd"
+  default     = "ubuntu_zfs/ubuntu-zfs_OVMF_VARS.fd"
 }
 variable "qemu_ssh_username" {
   type        = string

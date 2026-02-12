@@ -1,0 +1,34 @@
+# Ubuntu ISO and extracted kernel
+*.iso
+vmlinuz
+initrd
+
+# Generated files
+user-data
+cidata.iso
+
+# UEFI vars (per-VM copies)
+*_OVMF_VARS.fd
+
+# VM disk images
+*.qcow2
+*.qcow2.orig
+
+# Extracted logs
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+settings*.json
+
+output-ubuntu

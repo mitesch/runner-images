@@ -1,0 +1,103 @@
+#cloud-config
+autoinstall:
+  version: 1
+  interactive-sections: []
+  
+  # Identity
+  identity:
+    hostname: {{ network.hostname }}
+    username: {{ user.username }}
+    password: {{ user.password_hash }}
+  
+  # Locale and keyboard
+  locale: {{ locale }}
+  timezone: {{ timezone }}
+  keyboard:
+    layout: us
+  
+  # Storage layout - ZFS or LVM based on settings
+{% if zfs.enabled %}
+  # Use Ubuntu's native ZFS layout - automatically creates:
+  # - bpool (boot pool) with /boot
+  # - rpool (root pool) with /, /home, /var, etc.
+  storage:
+    layout:
+      name: zfs
+      match:
+        size: largest
+{% else %}
+  # Use direct ext4 layout (no LVM)
+  storage:
+    layout:
+      name: direct
+      match:
+        size: largest
+{% endif %}
+  
+  apt:
+    geoip: false
+    preserve_sources_list: false
+    primary:
+      - arches: [amd64, i386]
+        uri: http://archive.ubuntu.com/ubuntu/
+  
+  # SSH configuration
+  ssh:
+    install-server: true
+    authorized-keys:
+      - {{ user.ssh_public_key }}
+    allow-pw: {{ ssh.password_authentication }}
+  
+  # Package installation
+  packages:
+{% for package in packages %}    - {{ package }}
+{% endfor %}
+
+  # Late commands for additional configuration
+  late-commands:
+    # Configure SSH settings
+    - |
+      cat > /target/etc/ssh/sshd_config.d/99-custom.conf << 'EOF'
+      Port {{ ssh.port }}
+      PermitRootLogin {{ 'yes' if ssh.permit_root_login else 'no' }}
+      PasswordAuthentication {{ 'yes' if ssh.password_authentication else 'no' }}
+      PubkeyAuthentication {{ 'yes' if ssh.pubkey_authentication else 'no' }}
+      EOF
+    # Configure passwordless sudo for the admin user (needed for Packer provisioning)
+    - |
+      echo '{{ user.username }} ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/99-packer
+      chmod 440 /target/etc/sudoers.d/99-packer
+    - |
+      sudo ssh-keygen -A
+      sudo service ssh --full-restart
+{% if zfs.install_latest %}
+    # Install latest ZFS from OpenZFS PPA (arter97)
+    - curtin in-target -- apt-get install -y software-properties-common
+    - curtin in-target -- add-apt-repository -y ppa:arter97/zfs
+    - curtin in-target -- apt-get update -y
+    - curtin in-target -- apt-get install -y zfsutils-linux zfs-dkms
+    # Upgrade all ZFS pools to latest feature flags
+    - |
+      for pool in $(zpool list -H -o name); do
+        zpool upgrade "$pool"
+      done
+{% endif %}
+{% if zfs.compression %}
+    # Set ZFS compression on root pool and all datasets
+    - |
+      for ds in $(zfs list -H -o name -r rpool); do
+        zfs set compression={{ zfs.compression }} "$ds"
+        zfs set atime=off "$ds"
+      done
+{% endif %}
+
+  # Post-install actions
+  user-data:
+{% if zfs.enabled %}
+    runcmd:
+      - ['zpool', 'status']
+      - ['zfs', 'list']
+{% endif %}
+  
+  # Automatic reboot after installation
+  shutdown: poweroff
